@@ -129,8 +129,58 @@ class CursorRegistration:
                 self.signup_tab.ele("@type=submit").click()
                 print(f"{Fore.GREEN}{EMOJI['SUCCESS']} {self.translator.get('register.basic_info_submitted')}...{Style.RESET_ALL}")
 
-            # 处理 Turnstile 验证
-            self._handle_turnstile()
+                # 等待页面加载完成
+                time.sleep(3)
+
+                # 检查人机验证状态
+                max_verify_attempts = 3
+                verify_attempt = 0
+                
+                while verify_attempt < max_verify_attempts:
+                    # 处理 Turnstile 验证
+                    verify_result = self._handle_turnstile()
+                    
+                    if verify_result:
+                        break
+                    
+                    # 如果验证失败，重新填写表单
+                    print(f"{Fore.CYAN}{EMOJI['FORM']} {self.translator.get('register.refilling_basic_info')}...{Style.RESET_ALL}")
+                    
+                    # 等待页面刷新完成
+                    time.sleep(3)
+                    
+                    # 重新填写表单
+                    try:
+                        first_name_input = self.signup_tab.ele("@name=first_name")
+                        if first_name_input:
+                            first_name_input.input(self.first_name)
+                            time.sleep(random.uniform(1, 2))
+                        
+                        last_name_input = self.signup_tab.ele("@name=last_name")
+                        if last_name_input:
+                            last_name_input.input(self.last_name)
+                            time.sleep(random.uniform(1, 2))
+                        
+                        email_input = self.signup_tab.ele("@name=email")
+                        if email_input:
+                            email_input.input(self.email_address)
+                            time.sleep(random.uniform(1, 2))
+                        
+                        submit_button = self.signup_tab.ele("@type=submit")
+                        if submit_button:
+                            submit_button.click()
+                            print(f"{Fore.GREEN}{EMOJI['SUCCESS']} {self.translator.get('register.form_resubmitted')}...{Style.RESET_ALL}")
+                            
+                            # 等待页面加载和可能的验证出现
+                            time.sleep(5)
+                    except Exception as e:
+                        print(f"{Fore.CYAN}{EMOJI['INFO']} {self.translator.get('register.human_behavior_error', error=str(e))}")
+                    
+                    verify_attempt += 1
+                    
+                    if verify_attempt >= max_verify_attempts:
+                        print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.max_verify_attempts')}...{Style.RESET_ALL}")
+                        return False
 
             # 设置密码
             if self.signup_tab.ele("@name=password"):
@@ -138,8 +188,49 @@ class CursorRegistration:
                 self.signup_tab.ele("@name=password").input(self.password)
                 time.sleep(random.uniform(1, 2))
                 self.signup_tab.ele("@type=submit").click()
-            
-            self._handle_turnstile()
+                
+                # 等待页面加载完成
+                time.sleep(3)
+                
+                # 检查密码页面的人机验证
+                max_verify_attempts = 3
+                verify_attempt = 0
+                
+                while verify_attempt < max_verify_attempts:
+                    # 处理 Turnstile 验证
+                    verify_result = self._handle_turnstile()
+                    
+                    if verify_result:
+                        break
+                    
+                    # 如果验证失败，重新填写密码
+                    print(f"{Fore.CYAN}{EMOJI['PASSWORD']} {self.translator.get('register.refilling_password')}...{Style.RESET_ALL}")
+                    
+                    # 等待页面刷新完成
+                    time.sleep(3)
+                    
+                    # 重新填写密码
+                    try:
+                        password_input = self.signup_tab.ele("@name=password")
+                        if password_input:
+                            password_input.input(self.password)
+                            time.sleep(random.uniform(1, 2))
+                        
+                        submit_button = self.signup_tab.ele("@type=submit")
+                        if submit_button:
+                            submit_button.click()
+                            print(f"{Fore.GREEN}{EMOJI['SUCCESS']} {self.translator.get('register.password_resubmitted')}...{Style.RESET_ALL}")
+                            
+                            # 等待页面加载和可能的验证出现
+                            time.sleep(5)
+                    except Exception as e:
+                        print(f"{Fore.CYAN}{EMOJI['INFO']} {self.translator.get('register.human_behavior_error', error=str(e))}")
+                    
+                    verify_attempt += 1
+                    
+                    if verify_attempt >= max_verify_attempts:
+                        print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.max_verify_attempts')}...{Style.RESET_ALL}")
+                        return False
 
             # 等待并获取验证码
             time.sleep(5)  # 等待验证码邮件
@@ -250,218 +341,57 @@ class CursorRegistration:
 
     def _handle_turnstile(self):
         """处理 Turnstile 验证"""
-        print(f"{Fore.YELLOW}{EMOJI['VERIFY']} {self.translator.get('register.handle_turnstile')}...{Style.RESET_ALL}")
-        
-        # 设置最大等待时间（秒）
-        max_wait_time = 10
-        start_time = time.time()
-        
-        while True:
-            try:
-                # 检查是否出现人机验证失败提示
-                error_texts = [
-                    "Can't verify the user is human",
-                    "Please try again",
-                    "人机验证失败",
-                    "请重试"
-                ]
+        try:
+            print(f"{Fore.CYAN}{EMOJI['VERIFY']} {self.translator.get('register.handling_turnstile')}...{Style.RESET_ALL}")
+            
+            # 等待页面加载完成
+            time.sleep(3)
+            
+            # 检查是否存在人机验证错误
+            error_messages = [
+                "Can't verify the user is human",
+                "Please try again",
+                "人机验证失败",
+                "请重试"
+            ]
+            
+            # 检查页面文本中是否包含错误信息
+            page_text = self.signup_tab.text
+            for error_msg in error_messages:
+                if error_msg in page_text:
+                    print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.human_verify_failed')}: {error_msg}")
+                    return False
+            
+            # 检查是否存在验证框架
+            iframe = self.signup_tab.ele("iframe[title*='Turnstile']")
+            if not iframe:
+                print(f"{Fore.YELLOW}{EMOJI['WAIT']} {self.translator.get('register.no_turnstile_detected')}...{Style.RESET_ALL}")
+                return True
                 
-                for text in error_texts:
-                    error_element = self.signup_tab.ele(f'xpath://div[contains(text(), "{text}")]')
-                    if error_element:
-                        print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.human_verify_failed')}: {text}{Style.RESET_ALL}")
-                        
-                        # 刷新页面
-                        self.signup_tab.refresh()
-                        
-                        # 等待页面加载完成
-                        max_load_wait = 10
-                        load_start_time = time.time()
-                        page_loaded = False
-                        
-                        while time.time() - load_start_time < max_load_wait:
-                            try:
-                                # 检查页面是否加载完成
-                                if self.signup_tab.ele("@name=password") or self.signup_tab.ele("@name=first_name"):
-                                    page_loaded = True
-                                    break
-                                time.sleep(0.5)
-                            except:
-                                time.sleep(0.5)
-                                continue
-                        
-                        if not page_loaded:
-                            print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.page_load_timeout')}...{Style.RESET_ALL}")
-                            return False
-                        
-                        # 等待额外的时间确保页面完全加载
-                        time.sleep(random.uniform(2, 4))
-                        
-                        # 检查当前页面状态并重新填写表单
-                        retry_count = 0
-                        max_retries = 3
-                        
-                        while retry_count < max_retries:
-                            try:
-                                # 先尝试获取所有可能的输入框，确保页面已完全加载
-                                password_field = self.signup_tab.ele("@name=password", timeout=2)
-                                first_name_field = self.signup_tab.ele("@name=first_name", timeout=2)
-                                
-                                if password_field:
-                                    # 在密码设置页面
-                                    print(f"{Fore.CYAN}{EMOJI['FORM']} {self.translator.get('register.refilling_password')}...{Style.RESET_ALL}")
-                                    
-                                    # 确保元素可交互
-                                    time.sleep(random.uniform(1, 2))
-                                    
-                                    # 模拟人类点击和输入
-                                    self.signup_tab.actions.move_to(password_field)
-                                    time.sleep(random.uniform(0.3, 0.7))
-                                    password_field.click()
-                                    time.sleep(random.uniform(0.5, 1))
-                                    
-                                    # 一个字符一个字符地输入
-                                    for char in self.password:
-                                        password_field.input(char)
-                                        time.sleep(random.uniform(0.1, 0.3))
-                                    
-                                    time.sleep(random.uniform(1, 2))
-                                    break
-                                    
-                                elif first_name_field:
-                                    # 在基本信息填写页面
-                                    print(f"{Fore.CYAN}{EMOJI['FORM']} {self.translator.get('register.refilling_basic_info')}...{Style.RESET_ALL}")
-                                    
-                                    # 确保元素可交互
-                                    time.sleep(random.uniform(1, 2))
-                                    
-                                    # 模拟人类输入 first_name
-                                    self.signup_tab.actions.move_to(first_name_field)
-                                    time.sleep(random.uniform(0.3, 0.7))
-                                    first_name_field.click()
-                                    time.sleep(random.uniform(0.5, 1))
-                                    for char in self.first_name:
-                                        first_name_field.input(char)
-                                        time.sleep(random.uniform(0.1, 0.3))
-                                    
-                                    time.sleep(random.uniform(0.5, 1))
-                                    
-                                    # 模拟人类输入 last_name
-                                    last_name_field = self.signup_tab.ele("@name=last_name")
-                                    if last_name_field:
-                                        self.signup_tab.actions.move_to(last_name_field)
-                                        time.sleep(random.uniform(0.3, 0.7))
-                                        last_name_field.click()
-                                        time.sleep(random.uniform(0.5, 1))
-                                        for char in self.last_name:
-                                            last_name_field.input(char)
-                                            time.sleep(random.uniform(0.1, 0.3))
-                                    
-                                    time.sleep(random.uniform(0.5, 1))
-                                    
-                                    # 模拟人类输入 email
-                                    email_field = self.signup_tab.ele("@name=email")
-                                    if email_field:
-                                        self.signup_tab.actions.move_to(email_field)
-                                        time.sleep(random.uniform(0.3, 0.7))
-                                        email_field.click()
-                                        time.sleep(random.uniform(0.5, 1))
-                                        for char in self.email_address:
-                                            email_field.input(char)
-                                            time.sleep(random.uniform(0.1, 0.3))
-                                    
-                                    time.sleep(random.uniform(1, 2))
-                                    break
-                                
-                                retry_count += 1
-                                if retry_count < max_retries:
-                                    print(f"{Fore.YELLOW}{EMOJI['WAIT']} {self.translator.get('register.retry_form_fill')}...{Style.RESET_ALL}")
-                                    time.sleep(2)
-                                
-                            except Exception as e:
-                                print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.form_fill_error')}: {str(e)}{Style.RESET_ALL}")
-                                retry_count += 1
-                                if retry_count < max_retries:
-                                    time.sleep(2)
-                                continue
-                        
-                        if retry_count >= max_retries:
-                            print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.form_fill_failed')}...{Style.RESET_ALL}")
-                            return False
-                        
-                        # 再次模拟人类行为
-                        try:
-                            self._simulate_human_behavior()
-                        except Exception as e:
-                            print(f"{Fore.YELLOW}{EMOJI['INFO']} {self.translator.get('register.simulate_human_error')}: {str(e)}{Style.RESET_ALL}")
-                        
-                        # 点击提交按钮
-                        try:
-                            submit_button = self.signup_tab.ele("@type=submit", timeout=2)
-                            if submit_button:
-                                self.signup_tab.actions.move_to(submit_button)
-                                time.sleep(random.uniform(0.5, 1))
-                                submit_button.click()
-                                print(f"{Fore.GREEN}{EMOJI['SUCCESS']} {self.translator.get('register.form_resubmitted')}...{Style.RESET_ALL}")
-                        except Exception as e:
-                            print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.submit_error')}: {str(e)}{Style.RESET_ALL}")
-                            return False
-                        
+            # 等待验证完成
+            max_wait = 30
+            start_time = time.time()
+            while time.time() - start_time < max_wait:
+                # 再次检查错误信息
+                page_text = self.signup_tab.text
+                for error_msg in error_messages:
+                    if error_msg in page_text:
+                        print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.human_verify_failed')}: {error_msg}")
                         return False
                 
-                # 检查是否超时
-                if time.time() - start_time > max_wait_time:
-                    print(f"{Fore.YELLOW}{EMOJI['WAIT']} {self.translator.get('register.no_turnstile')}...{Style.RESET_ALL}")
-                    time.sleep(2)
-                    break
+                # 检查是否还存在验证框架
+                if not self.signup_tab.ele("iframe[title*='Turnstile']"):
+                    print(f"{Fore.GREEN}{EMOJI['SUCCESS']} {self.translator.get('register.turnstile_verified')}...{Style.RESET_ALL}")
+                    return True
                     
-                try:
-                    challengeCheck = (
-                        self.signup_tab.ele("@id=cf-turnstile", timeout=1)
-                        .child()
-                        .shadow_root.ele("tag:iframe")
-                        .ele("tag:body")
-                        .sr("tag:input")
-                    )
-
-                    if challengeCheck:
-                        challengeCheck.click()
-                        time.sleep(3)
-                        
-                        # 点击后检查是否验证成功
-                        if not self._check_human_verify():
-                            print(f"{Fore.GREEN}{EMOJI['SUCCESS']} {self.translator.get('register.turnstile_passed')}{Style.RESET_ALL}")
-                            time.sleep(2)
-                            break
-                        else:
-                            print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.turnstile_failed')}{Style.RESET_ALL}")
-                            return False
-                except:
-                    pass
-                    
-                try:
-                    if (self.signup_tab.ele("@name=password", timeout=0.5) or 
-                        self.signup_tab.ele("@name=email", timeout=0.5) or
-                        self.signup_tab.ele("@data-index=0", timeout=0.5)):
-                        if not self._check_human_verify():
-                            print(f"{Fore.GREEN}{EMOJI['SUCCESS']} {self.translator.get('register.turnstile_passed')}{Style.RESET_ALL}")
-                            time.sleep(2)
-                            break
-                        else:
-                            print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.turnstile_failed')}{Style.RESET_ALL}")
-                            return False
-                except:
-                    pass
-                    
-                time.sleep(1)
+                time.sleep(0.5)  # 每500ms检查一次
                 
-            except Exception as e:
-                print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.error', error=str(e))}{Style.RESET_ALL}")
-                time.sleep(2)
-                break
-
-        time.sleep(2)
-        return True
+            print(f"{Fore.YELLOW}{EMOJI['WAIT']} {self.translator.get('register.turnstile_timeout')}...{Style.RESET_ALL}")
+            return False
+            
+        except Exception as e:
+            print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.turnstile_error', error=str(e))}...{Style.RESET_ALL}")
+            return False
 
     def _check_human_verify(self):
         """检查是否出现人机验证失败提示"""
@@ -479,6 +409,88 @@ class CursorRegistration:
                     return True
             return False
         except:
+            return False
+
+    def _refill_form(self):
+        """重新填写表单"""
+        try:
+            print(f"{Fore.CYAN}{EMOJI['FORM']} {self.translator.get('register.refilling_basic_info')}...{Style.RESET_ALL}")
+            
+            # 等待页面加载完成
+            time.sleep(2)
+            
+            # 检查并等待元素可见
+            def wait_for_element(selector, timeout=10):
+                start_time = time.time()
+                while time.time() - start_time < timeout:
+                    element = self.signup_tab.ele(selector)
+                    if element and element.is_displayed():
+                        # 确保元素完全加载并可交互
+                        time.sleep(0.5)
+                        return element
+                    time.sleep(0.5)
+                return None
+            
+            # 填写表单
+            first_name_input = wait_for_element("@name=first_name")
+            if not first_name_input:
+                print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.element_not_found', field='first_name')}...{Style.RESET_ALL}")
+                return False
+                
+            # 清空输入框
+            first_name_input.clear()
+            time.sleep(random.uniform(0.5, 1))
+            
+            # 模拟人类输入
+            for char in self.first_name:
+                first_name_input.input(char)
+                time.sleep(random.uniform(0.1, 0.3))
+            
+            # 等待一下再输入下一个字段
+            time.sleep(random.uniform(0.5, 1))
+            
+            # 重复类似步骤填写 last_name 和 email
+            last_name_input = wait_for_element("@name=last_name")
+            if not last_name_input:
+                print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.element_not_found', field='last_name')}...{Style.RESET_ALL}")
+                return False
+                
+            last_name_input.clear()
+            time.sleep(random.uniform(0.5, 1))
+            
+            for char in self.last_name:
+                last_name_input.input(char)
+                time.sleep(random.uniform(0.1, 0.3))
+            
+            time.sleep(random.uniform(0.5, 1))
+            
+            email_input = wait_for_element("@name=email")
+            if not email_input:
+                print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.element_not_found', field='email')}...{Style.RESET_ALL}")
+                return False
+                
+            email_input.clear()
+            time.sleep(random.uniform(0.5, 1))
+            
+            for char in self.email_address:
+                email_input.input(char)
+                time.sleep(random.uniform(0.1, 0.3))
+            
+            # 等待一下再点击提交按钮
+            time.sleep(random.uniform(1, 2))
+            
+            # 查找并点击提交按钮
+            submit_button = wait_for_element("@type=submit")
+            if not submit_button:
+                print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.submit_button_not_found')}...{Style.RESET_ALL}")
+                return False
+                
+            submit_button.click()
+            print(f"{Fore.GREEN}{EMOJI['SUCCESS']} {self.translator.get('register.form_resubmitted')}...{Style.RESET_ALL}")
+            return True
+            
+        except Exception as e:
+            print(f"{Fore.RED}{EMOJI['ERROR']} {self.translator.get('register.refill_form_error', error=str(e))}...{Style.RESET_ALL}")
             return False
 
     def _simulate_human_behavior(self):
