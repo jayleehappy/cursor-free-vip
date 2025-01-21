@@ -5,6 +5,10 @@ import sys
 import json
 from logo import print_logo
 from colorama import Fore, Style, init
+from cursor_register import CursorRegistration
+from reset_machine_manual import MachineIDResetter
+from quit_cursor import quit_cursor
+from language import Language
 
 # 初始化colorama
 init()
@@ -97,47 +101,55 @@ def select_language():
     return False
 
 def main():
+    # 打印 Logo
     print_logo()
-    print_menu()
     
+    # 打印修改者信息
+    print(f"\n{Fore.CYAN}Modified by: {Fore.GREEN}jayleehappy{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}Project URL: {Fore.GREEN}https://github.com/jayleehappy/cursor-free-vip{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}Original Project: {Fore.GREEN}https://github.com/yeongpin/cursor-free-vip{Style.RESET_ALL}\n")
+    
+    # 初始化语言
+    lang = Language()
+    translator = lang.get_translator()
+    
+    # 显示菜单
     while True:
         try:
-            choice = input(f"\n{EMOJI['ARROW']} {Fore.CYAN}{translator.get('menu.input_choice', choices='0-4')}: {Style.RESET_ALL}")
-
-            if choice == "0":
-                print(f"\n{Fore.YELLOW}{EMOJI['INFO']} {translator.get('menu.exit')}...{Style.RESET_ALL}")
-                print(f"{Fore.CYAN}{'═' * 50}{Style.RESET_ALL}")
-                return
-            elif choice == "1":
-                import reset_machine_manual
-                reset_machine_manual.run(translator)
-                break
+            print(f"\n{Fore.CYAN}=== {translator.get('main.menu')} ==={Style.RESET_ALL}")
+            print(f"{Fore.WHITE}1. {translator.get('main.register_cursor')}")
+            print(f"2. {translator.get('main.reset_machine')}")
+            print(f"3. {translator.get('main.quit_cursor')}")
+            print(f"4. {translator.get('main.exit')}")
+            
+            choice = input(f"\n{translator.get('main.enter_choice')}: ")
+            
+            if choice == "1":
+                registration = CursorRegistration(translator)
+                if registration.setup_email():
+                    registration.register_cursor()
             elif choice == "2":
-                import cursor_register
-                cursor_register.main(translator)
-                break
+                resetter = MachineIDResetter(translator)
+                resetter.reset()
             elif choice == "3":
-                import quit_cursor
-                quit_cursor.quit_cursor(translator)
-                break
+                quit_cursor(translator)
             elif choice == "4":
-                if select_language():
-                    print_menu()
-                continue
+                print(f"\n{Fore.GREEN}{translator.get('main.goodbye')}{Style.RESET_ALL}")
+                sys.exit(0)
             else:
-                print(f"{Fore.RED}{EMOJI['ERROR']} {translator.get('menu.invalid_choice')}{Style.RESET_ALL}")
-                print_menu()
-
+                print(f"\n{Fore.RED}{translator.get('main.invalid_choice')}{Style.RESET_ALL}")
+                
         except KeyboardInterrupt:
-            print(f"\n{Fore.YELLOW}{EMOJI['INFO']} {translator.get('menu.program_terminated')}{Style.RESET_ALL}")
-            print(f"{Fore.CYAN}{'═' * 50}{Style.RESET_ALL}")
-            return
+            print(f"\n\n{Fore.YELLOW}{translator.get('main.exit_warning')}{Style.RESET_ALL}")
+            try:
+                confirm = input(f"{translator.get('main.confirm_exit')} (Y/N): ").lower()
+                if confirm == 'y':
+                    print(f"\n{Fore.GREEN}{translator.get('main.goodbye')}{Style.RESET_ALL}")
+                    sys.exit(0)
+            except KeyboardInterrupt:
+                continue
         except Exception as e:
-            print(f"{Fore.RED}{EMOJI['ERROR']} {translator.get('menu.error_occurred', error=str(e))}{Style.RESET_ALL}")
-            break
-
-    print(f"\n{Fore.CYAN}{'═' * 50}{Style.RESET_ALL}")
-    input(f"{EMOJI['INFO']} {translator.get('menu.press_enter')}...{Style.RESET_ALL}")
+            print(f"\n{Fore.RED}{translator.get('main.error', error=str(e))}{Style.RESET_ALL}")
 
 if __name__ == "__main__":
     main() 

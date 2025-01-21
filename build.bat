@@ -1,62 +1,59 @@
 @echo off
 chcp 65001 > nul
-cls
+setlocal enabledelayedexpansion
 
-:: 檢查是否以管理員權限運行
-net session >nul 2>&1
-if %errorLevel% == 0 (
-    :: 如果是管理員權限，只創建虛擬環境後就降權運行
-    if not exist venv (
-        echo ℹ️ 正在創建虛擬環境...
-        python -m venv venv
-    )
-    
-    :: 降權運行剩餘的步驟
-    echo ℹ️ 以普通用戶權限繼續...
-    powershell -Command "Start-Process -FilePath '%comspec%' -ArgumentList '/c cd /d %cd% && %~f0 run' -Verb RunAs:NO"
-    exit /b
+:: 设置版本号
+set VERSION=1.0.0
+
+:: 设置环境变量
+set "PYTHONPATH=%CD%"
+set "PATH=%PATH%;%CD%"
+
+:: 清理旧的构建文件
+echo 清理构建文件...
+if exist "build" rd /s /q "build"
+if exist "dist" rd /s /q "dist"
+del /f /q *.spec 2>nul
+
+:: 安装依赖
+echo 安装依赖...
+python -m pip install -r requirements.txt
+python -m pip install pyinstaller
+
+:: 开始构建
+echo 开始构建...
+python -m PyInstaller --clean ^
+    --onefile ^
+    --icon="images/logo.png" ^
+    --add-data "turnstilePatch;turnstilePatch" ^
+    --add-data "recaptchaPatch;recaptchaPatch" ^
+    --add-data "uBlock0.chromium;uBlock0.chromium" ^
+    --add-data "locales;locales" ^
+    --add-data "images;images" ^
+    --add-data "LICENSE;." ^
+    --add-data "README.md;." ^
+    --add-data "DEVELOPMENT_LOG.md;." ^
+    --add-data "cursor_auth.py;." ^
+    --add-data "reset_machine_manual.py;." ^
+    --add-data "cursor_register.py;." ^
+    --add-data "browser.py;." ^
+    --add-data "control.py;." ^
+    --add-data ".env;." ^
+    --hidden-import=cursor_auth ^
+    --hidden-import=reset_machine_manual ^
+    --hidden-import=browser ^
+    --hidden-import=control ^
+    --name "CursorFreeVIP_%VERSION%_windows" ^
+    main.py
+
+:: 检查构建结果
+if exist "dist\CursorFreeVIP_%VERSION%_windows.exe" (
+    echo.
+    echo 构建成功！
+    echo 可执行文件位于: dist\CursorFreeVIP_%VERSION%_windows.exe
 ) else (
-    :: 檢查是否是第二階段運行
-    if "%1"=="run" (
-        goto RUN_BUILD
-    ) else (
-        :: 如果是普通權限且需要創建虛擬環境，請求管理員權限
-        if not exist venv (
-            echo ⚠️ 需要管理員權限來創建虛擬環境
-            echo ℹ️ 正在請求管理員權限...
-            powershell -Command "Start-Process -Verb RunAs -FilePath '%comspec%' -ArgumentList '/c cd /d %cd% && %~f0'"
-            exit /b
-        ) else (
-            goto RUN_BUILD
-        )
-    )
+    echo.
+    echo 构建失败！
 )
 
-:RUN_BUILD
-echo ℹ️ 啟動虛擬環境...
-call venv\Scripts\activate.bat
-if errorlevel 1 (
-    echo ❌ 啟動虛擬環境失敗
-    pause
-    exit /b 1
-)
-
-:: 檢查並安裝缺失的依賴
-echo ℹ️ 檢查依賴...
-for /f "tokens=1" %%i in (requirements.txt) do (
-    pip show %%i >nul 2>&1 || (
-        echo ℹ️ 安裝 %%i...
-        pip install %%i
-    )
-)
-
-echo ℹ️ 開始構建...
-python build.py
-if errorlevel 1 (
-    echo ❌ 構建失敗
-    pause
-    exit /b 1
-)
-
-echo ✅ 完成！
 pause 
