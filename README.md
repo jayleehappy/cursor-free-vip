@@ -1,4 +1,100 @@
-# ➤ Cursor Free VIP
+# Cursor Free VIP
+
+## 项目说明
+这是一个基于 [yeongpin/cursor-free-vip](https://github.com/yeongpin/cursor-free-vip) 项目的改进版本。
+感谢原作者 yeongpin 提供的基础项目框架。
+
+## 主要改进
+1. 人机验证优化
+   - 增加多重验证失败检测机制
+   - 改进表单重填功能，模拟真实人类操作
+   - 优化验证码处理流程
+   - 添加详细的状态提示
+
+2. 账号管理功能
+   - 自动保存注册账号信息到 cursor_accounts.txt
+   - 实现账号自动切换功能
+   - 优化账号信息展示
+
+3. 错误处理增强
+   - 完善 SSL 握手错误处理
+   - 添加网络状态检测
+   - 优化重试机制
+   - 改进错误提示信息
+
+4. 界面优化
+   - 添加更详细的操作提示
+   - 优化状态显示效果
+   - 改进多语言支持
+
+## 使用方法
+1. 环境要求
+   - Python 3.7+
+   - Chrome 浏览器
+   - Windows 10/11 或 macOS
+
+2. 安装步骤
+   ```bash
+   # 克隆项目
+   git clone https://github.com/jayleehappy/cursor-free-vip.git
+   cd cursor-free-vip
+   
+   # 安装依赖
+   pip install -r requirements.txt
+   ```
+
+3. 运行程序
+   ```bash
+   python main.py
+   ```
+
+4. 功能选项
+   - 注册 Cursor 账号
+   - 重置机器码
+   - 退出 Cursor
+   - 切换语言
+
+## 注意事项
+1. 注册过程
+   - 确保网络稳定，避免频繁断开
+   - 注册时请耐心等待人机验证
+   - 验证失败时会自动重试，无需手动操作
+   - 最多重试3次，超过后需手动处理
+
+2. 账号管理
+   - 账号信息自动保存在 cursor_accounts.txt
+   - 切换账号时会自动退出并重启 Cursor
+   - 请妥善保管账号信息文件
+
+3. 安全提示
+   - 请勿频繁注册账号
+   - 建议使用真实邮箱注册
+   - 遵守 Cursor 使用条款
+   - 定期更新程序以获取最新优化
+
+## 常见问题
+1. SSL握手错误
+   - 检查网络连接是否稳定
+   - 确认系统时间是否准确
+   - 尝试重新运行程序
+
+2. 人机验证失败
+   - 等待几分钟后再试
+   - 检查网络连接
+   - 确保未使用代理或VPN
+
+3. 账号切换问题
+   - 确保 Cursor 已完全退出
+   - 检查账号信息是否正确
+   - 等待几秒后再尝试切换
+
+## 更新日志
+请查看 [DEVELOPMENT_LOG.md](./DEVELOPMENT_LOG.md) 了解详细更新记录。
+
+---
+
+# ➤ Original Project | 原项目
+
 <div align="center">
 <p align="center">
   <img src="./images/logo.png" alt="Cursor Pro Logo" width="200"/>
@@ -228,103 +324,6 @@ irm https://raw.githubusercontent.com/yeongpin/cursor-free-vip/main/scripts/rese
 源代碼靈感來之 | Original code inspiration from [Here](https://github.com/hmhm2022/gpt-cursor-auto)
 
 This tool is only for learning and research purposes, and any consequences arising from the use of this tool are borne by the user.
-
-## 项目说明
-这是一个基于 [yeongpin/cursor-free-vip](https://github.com/yeongpin/cursor-free-vip) 项目的改进版本。
-感谢原作者 yeongpin 提供的基础项目框架。
-
-## 主要改进
-1. 人机验证优化
-   - 增加多重验证失败检测机制
-   - 改进表单重填功能，模拟真实人类操作
-   - 优化验证码处理流程
-   - 添加详细的状态提示
-
-2. 账号管理功能
-   - 自动保存注册账号信息到 cursor_accounts.txt
-   - 实现账号自动切换功能
-   - 优化账号信息展示
-
-3. 错误处理增强
-   - 完善 SSL 握手错误处理
-   - 添加网络状态检测
-   - 优化重试机制
-   - 改进错误提示信息
-
-4. 界面优化
-   - 添加更详细的操作提示
-   - 优化状态显示效果
-   - 改进多语言支持
-
-## 使用方法
-1. 环境要求
-   - Python 3.7+
-   - Chrome 浏览器
-   - Windows 10/11 或 macOS
-
-2. 安装步骤
-   ```bash
-   # 克隆项目
-   git clone https://github.com/jayleehappy/cursor-free-vip.git
-   cd cursor-free-vip
-   
-   # 安装依赖
-   pip install -r requirements.txt
-   ```
-
-3. 运行程序
-   ```bash
-   python main.py
-   ```
-
-4. 功能选项
-   - 注册 Cursor 账号
-   - 重置机器码
-   - 退出 Cursor
-   - 切换语言
-
-## 注意事项
-1. 注册过程
-   - 确保网络稳定，避免频繁断开
-   - 注册时请耐心等待人机验证
-   - 验证失败时会自动重试，无需手动操作
-   - 最多重试3次，超过后需手动处理
-
-2. 账号管理
-   - 账号信息自动保存在 cursor_accounts.txt
-   - 切换账号时会自动退出并重启 Cursor
-   - 请妥善保管账号信息文件
-
-3. 安全提示
-   - 请勿频繁注册账号
-   - 建议使用真实邮箱注册
-   - 遵守 Cursor 使用条款
-   - 定期更新程序以获取最新优化
-
-## 常见问题
-1. SSL握手错误
-   - 检查网络连接是否稳定
-   - 确认系统时间是否准确
-   - 尝试重新运行程序
-
-2. 人机验证失败
-   - 等待几分钟后再试
-   - 检查网络连接
-   - 确保未使用代理或VPN
-
-3. 账号切换问题
-   - 确保 Cursor 已完全退出
-   - 检查账号信息是否正确
-   - 等待几秒后再尝试切换
-
-## 更新日志
-请查看 [DEVELOPMENT_LOG.md](./DEVELOPMENT_LOG.md) 了解详细更新记录。
-
-## 致谢
-特别感谢 [yeongpin/cursor-free-vip](https://github.com/yeongpin/cursor-free-vip) 项目提供的基础框架和灵感。
-
-## 免责声明
-本项目仅供学习和研究使用，请遵守相关法律法规和服务条款。使用本项目所产生的任何后果由使用者自行承担。
 
 ## License
 MIT License
